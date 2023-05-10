@@ -19,4 +19,5 @@ jobs:
           AWS_REGION: ${{ secrets.AWS_DEFAULT_REGION }}
           INSTANCE_NAME: ${{ secrets.AWS_INSTANCE_NAME }}
         run: |
-          echo aws --region ${{ env.AWS_REGION }} ec2 describe-instances --filters "Name=${{ env.INSTANCE_NAME }},Values=running" --query 'Reservations[*].Instances[*].[PublicIpAddress]' --output text
+          aws --region ${{ env.AWS_REGION }} ec2 describe-instances --filters "Name=${{ env.INSTANCE_NAME }},Values=running" --query 'Reservations[*].Instances[*].[PublicIpAddress]' --output text > out.txt
+          cat out.txt
