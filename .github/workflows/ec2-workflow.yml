@@ -24,15 +24,24 @@ jobs:
         run: |
           aws ec2 authorize-security-group-ingress --group-id ${{ env.AWS_SECURITY_GROUP }} --protocol tcp --port 22 --cidr ${{ steps.ip.outputs.ipv4 }}/16
           sleep 10
+
+      - id: retrieve-ipv4
+        name: Retrieve Public Ipv4 from Ec2
+        env:
+          AWS_REGION: ${{ secrets.AWS_DEFAULT_REGION }}
+        run: |
+          ip=$(aws --region ${{ env.AWS_REGION }} ec2 describe-instances --filters "Name=instance-state-name,Values=running" --query 'Reservations[*].Instances[*].[PublicIpAddress]' --output text)
+          echo "::add-mask::$ip"
+          echo "ipv4=$ip" >> "$GITHUB_OUTPUT"
+
       - name: Deploy on AWS EC2
         env:
           PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY  }}
-          HOSTNAME: ${{ secrets.HOSTNAME  }}
           USER_NAME: ${{ secrets.USERNAME  }}
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
         run: |
           echo "$PRIVATE_KEY" > private_key.pem && chmod 600 private_key.pem
-          ssh -o StrictHostKeyChecking=no -i private_key.pem ${USER_NAME}@${HOSTNAME} '
+          ssh -o StrictHostKeyChecking=no -i private_key.pem ${USER_NAME}@$${{ steps.retrieve-ipv4.outputs.ipv4 }} '
             rm -rf /home/ubuntu/aws-demo
             git clone https://github.com/BalasubramanianSelvarajan/aws-demo.git
             cd aws-demo
