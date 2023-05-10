@@ -18,12 +18,12 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ secrets.AWS_DEFAULT_REGION }}
 
-#      - name: Add github actions IP to security group
-#        env:
-#          AWS_SECURITY_GROUP: ${{ secrets.AWS_SECURITY_GROUP }}
-#        run: |
-#          aws ec2 authorize-security-group-ingress --group-id ${{ env.AWS_SECURITY_GROUP }} --protocol tcp --port 22 --cidr ${{ steps.ip.outputs.ipv4 }}/16
-#          sleep 10
+      - name: Add github actions IP to security group
+        env:
+          AWS_SECURITY_GROUP: ${{ secrets.AWS_SECURITY_GROUP }}
+        run: |
+          aws ec2 authorize-security-group-ingress --group-id ${{ env.AWS_SECURITY_GROUP }} --protocol tcp --port 22 --cidr ${{ steps.ip.outputs.ipv4 }}/16
+          sleep 10
 
       - id: retrieve-ipv4
         name: Retrieve Public Ipv4 from Ec2
@@ -34,30 +34,27 @@ jobs:
           echo "::add-mask::$ip"
           echo "ipv4=$ip" >> "$GITHUB_OUTPUT"
 
-      - name: Print Ipv4
+      - name: Deploy on AWS EC2
+        env:
+          PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY  }}
+          USER_NAME: ${{ secrets.USERNAME  }}
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
         run: |
-          echo ${{ steps.retrieve-ipv4.outputs.ipv4 }} | sed 's/./& /g'
+          echo "$PRIVATE_KEY" > private_key.pem && chmod 600 private_key.pem
+          ssh -o StrictHostKeyChecking=no -i private_key.pem ${USER_NAME}@${{ steps.retrieve-ipv4.outputs.ipv4 }} '
+            rm -rf /home/ubuntu/aws-demo
+            git clone https://github.com/BalasubramanianSelvarajan/aws-demo.git
+            cd aws-demo
+            git checkout main
+            git pull origin main
+            sudo chmod +x ./deploy.sh
+            ./deploy.sh
+          '
+          rm -rf private_key.pem
 
-#      - name: Deploy on AWS EC2
-#        env:
-#          PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY  }}
-#          USER_NAME: ${{ secrets.USERNAME  }}
-#          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-#        run: |
-#          echo "$PRIVATE_KEY" > private_key.pem && chmod 600 private_key.pem
-#          ssh -o StrictHostKeyChecking=no -i private_key.pem ${USER_NAME}@${{ steps.retrieve-ipv4.outputs.ipv4 }} '
-#            rm -rf /home/ubuntu/aws-demo
-#            git clone https://github.com/BalasubramanianSelvarajan/aws-demo.git
-#            cd aws-demo
-#            git checkout main
-#            git pull origin main
-#            sudo chmod +x ./deploy.sh
-#            ./deploy.sh
-#          '
-#          rm -rf private_key.pem
-#      - name: Remove github actions IP from security group
-#        env:
-#          AWS_SECURITY_GROUP: ${{ secrets.AWS_SECURITY_GROUP }}
-#        run: |
-#          aws ec2 revoke-security-group-ingress --group-id ${{ env.AWS_SECURITY_GROUP }} --protocol tcp --port 22 --cidr ${{ steps.ip.outputs.ipv4 }}/16
-#        if: always()
+      - name: Remove github actions IP from security group
+        env:
+          AWS_SECURITY_GROUP: ${{ secrets.AWS_SECURITY_GROUP }}
+        run: |
+          aws ec2 revoke-security-group-ingress --group-id ${{ env.AWS_SECURITY_GROUP }} --protocol tcp --port 22 --cidr ${{ steps.ip.outputs.ipv4 }}/16
+        if: always()
