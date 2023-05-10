@@ -36,7 +36,7 @@ jobs:
 
       - name: Print Ipv4
         run: |
-          echo ${{ steps.get-ipv4.outputs.ipv4 }} | sed 's/./& /g'
+          echo ${{ steps.retrieve-ipv4.outputs.ipv4 }} | sed 's/./& /g'
 
 #      - name: Deploy on AWS EC2
 #        env:
