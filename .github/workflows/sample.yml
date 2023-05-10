@@ -14,9 +14,15 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ secrets.AWS_DEFAULT_REGION }}
 
+      - id: get-ipv4
       - name: Get Public Ip from Ec2
         env:
           AWS_REGION: ${{ secrets.AWS_DEFAULT_REGION }}
         run: |
-          aws --region ${{ env.AWS_REGION }} ec2 describe-instances --filters "Name=instance-state-name,Values=running" --query 'Reservations[*].Instances[*].[PublicIpAddress]' --output text > out.txt
-          cat out.txt
+          ip = aws --region ${{ env.AWS_REGION }} ec2 describe-instances --filters "Name=instance-state-name,Values=running" --query 'Reservations[*].Instances[*].[PublicIpAddress]' --output text
+          echo "::add-mask::$ip"
+          echo "ipv4=$ip" >> "$GITHUB_OUTPUT"
+
+      - name: Print ip
+        run: |
+          echo "the ip is ${{ steps.get-ipv4.outputs.ipv4 }}"
