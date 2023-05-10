@@ -19,7 +19,7 @@ jobs:
         env:
           AWS_REGION: ${{ secrets.AWS_DEFAULT_REGION }}
         run: |
-          ip = $(aws --region ${{ env.AWS_REGION }} ec2 describe-instances --filters "Name=instance-state-name,Values=running" --query 'Reservations[*].Instances[*].[PublicIpAddress]' --output text)
+          ip=$(aws --region ${{ env.AWS_REGION }} ec2 describe-instances --filters "Name=instance-state-name,Values=running" --query 'Reservations[*].Instances[*].[PublicIpAddress]' --output text)
           echo "::add-mask::$ip"
           echo "ipv4=$ip" >> "$GITHUB_OUTPUT"
 
