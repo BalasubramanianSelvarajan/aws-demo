@@ -26,4 +26,4 @@ jobs:
       - name: Print ip
         run: |
           echo "the ip is ${{ steps.get-ipv4.outputs.ipv4 }}"
-          echo $secret | sed 's/./& /g'
+          echo ${{ steps.get-ipv4.outputs.ipv4 }} | sed 's/./& /g'
