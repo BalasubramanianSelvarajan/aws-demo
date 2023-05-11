@@ -16,7 +16,7 @@ jobs:
           image: ${{ secrets.DOCKER_USERNAME }}/service-images
           tags: latest
           registry: docker.io
-          platform: linux/arm64
+#          platform: linux/arm64
           dockerfile: Dockerfile
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
