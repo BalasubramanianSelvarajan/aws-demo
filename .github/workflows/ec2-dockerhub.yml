@@ -32,7 +32,7 @@ jobs:
       - name: executing remote ssh commands using ssh key
         uses: appleboy/ssh-action@v0.1.10
         with:
-          host: {{ steps.retrieve-ipv4.outputs.ipv4 }}
+          host: ${{ steps.retrieve-ipv4.outputs.ipv4 }}
           username: ${{ secrets.USERNAME  }}
           key: ${{ secrets.SSH_PRIVATE_KEY  }}
           script: |
