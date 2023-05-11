@@ -49,7 +49,7 @@
                 </configuration>
             </plugin>
         </plugins>
-        <finalName>aws-demo-image</finalName>
+        <finalName>service-images</finalName>
     </build>
 
 </project>
