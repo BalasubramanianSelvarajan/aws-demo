@@ -8,14 +8,37 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+#      - uses: actions/checkout@v3
 
-      - name: Build & push Docker image
-        uses: mr-smithers-excellent/docker-build-push@v6
+#      - name: Build & push Docker image
+#        uses: mr-smithers-excellent/docker-build-push@v6
+#        with:
+#          image: ${{ secrets.DOCKER_USERNAME }}/service-images
+#          tags: latest
+#          registry: docker.io
+#          dockerfile: Dockerfile
+#          username: ${{ secrets.DOCKER_USERNAME }}
+#          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - id: retrieve-ipv4
+        name: Retrieve Public Ipv4 from Ec2
+        env:
+          AWS_REGION: ${{ secrets.AWS_DEFAULT_REGION }}
+        run: |
+          ip=$(aws --region ${{ env.AWS_REGION }} ec2 describe-instances --filters "Name=instance-state-name,Values=running" --query 'Reservations[*].Instances[*].[PublicIpAddress]' --output text)
+          echo "::add-mask::$ip"
+          echo "ipv4=$ip" >> "$GITHUB_OUTPUT"
+
+      - name: executing remote ssh commands using ssh key
+        uses: appleboy/ssh-action@v0.1.10
         with:
-          image: ${{ secrets.DOCKER_USERNAME }}/service-images
-          tags: latest
-          registry: docker.io
-          dockerfile: Dockerfile
-          username: ${{ secrets.DOCKER_USERNAME }}
-          password: ${{ secrets.DOCKER_PASSWORD }}
+          host: {{ steps.retrieve-ipv4.outputs.ipv4 }}
+          username: ${{ secrets.USERNAME  }}
+          key: ${{ secrets.SSH_PRIVATE_KEY  }}
+          script: |
+            sudo chmod +x ./deploy.sh
+            ./deploy.sh
+            sudo docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
+            sudo docker pull ${{ secrets.DOCKER_USERNAME }}/service-images:latest
+            sudo docker run -p 8080:8080 -d ${{ secrets.DOCKER_USERNAME }}/service-images:latest
+      
