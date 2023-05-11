@@ -54,8 +54,13 @@ jobs:
           username: ${{ secrets.USERNAME  }}
           key: ${{ secrets.SSH_PRIVATE_KEY  }}
           script: |
-            sudo chmod +x ./deploy.sh
-            ./deploy.sh
+            rm -rf /home/ubuntu/aws-demo
+            git clone https://github.com/BalasubramanianSelvarajan/aws-demo.git
+            cd aws-demo
+            git checkout main
+            git pull origin main
+            sudo chmod +x ./pre-deploy.sh
+            ./pre-deploy.sh
             sudo docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
             sudo docker pull ${{ secrets.DOCKER_USERNAME }}/service-images:latest
             sudo docker run -p 8080:8080 -d ${{ secrets.DOCKER_USERNAME }}/service-images:latest
