@@ -70,10 +70,8 @@ jobs:
             sudo chmod +x ./pre-deploy.sh
             ./pre-deploy.sh
             sudo docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
-            sudo docker-compose up -d
-            sudo docker-compose ps
-#            sudo docker pull ${{ secrets.DOCKER_USERNAME }}/service-images:latest
-#            sudo docker run -p 8080:8080 -d ${{ secrets.DOCKER_USERNAME }}/service-images:latest
+            sudo docker pull ${{ secrets.DOCKER_USERNAME }}/service-images:latest
+            sudo docker run -p 8080:8080 -d ${{ secrets.DOCKER_USERNAME }}/service-images:latest
 
       - name: Remove github actions IP from security group
         env:
