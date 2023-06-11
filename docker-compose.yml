@@ -1,0 +1,34 @@
+version: "3.8"
+
+services:
+#  nginx:
+#    container_name: nginx
+#    image: nginx:1.13
+#    restart: always
+#    ports:
+#      - "80:80"
+#      - "443:443"
+#    volumes:
+#      - ./nginx/conf.d:/etc/nginx/conf.d
+#    depends_on:
+#      - app
+
+  app:
+    container_name: billing-service
+    image: divyarubbercompany/service-images:latest
+    restart: on-failure
+    ports:
+      - 8080:8080
+
+#  godaddy-ddns:
+#    container_name: godaddy-ddns
+#    image: linuxshots/godaddy-ddns:latest
+#    restart: unless-stopped
+#    environment:
+#      GD_NAME: billing
+#      GD_DOMAIN: divyarubber.co.in
+#      GD_TTL: 1200
+#      GD_KEY: gHVUr3rs2rsK_AQT3w1HVSceNZ4BJ5cchHe
+#      GD_SECRET: TDorR48ziKx7zMQvHtwZ9n
+
+

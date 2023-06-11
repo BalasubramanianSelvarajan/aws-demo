@@ -8,20 +8,10 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - name: Checkout Repository
+        uses: actions/checkout@v3
 
-#      - name: Build & push Docker image
-#        uses: mr-smithers-excellent/docker-build-push@v6
-#        with:
-#          image: ${{ secrets.DOCKER_USERNAME }}/service-images
-#          tags: latest
-#          registry: docker.io
-#          platform: linux/arm64
-#          dockerfile: Dockerfile
-#          username: ${{ secrets.DOCKER_USERNAME }}
-#          password: ${{ secrets.DOCKER_PASSWORD }}
-
-      - name: Set up Docker Buildx
+      - name: Set up Docker BuildX
         uses: docker/setup-buildx-action@v2
 
       - name: Login to Docker Hub
@@ -30,7 +20,7 @@ jobs:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
-      - name: Build and push
+      - name: Build and Push Image
         uses: docker/build-push-action@v4
         with:
           context: .
@@ -40,7 +30,7 @@ jobs:
 
       - name: Get Github action IP
         id: ip
-        uses: haythem/public-ip@v1.2
+        uses: haythem/public-ip@v1.3
 
       - name: AWS configure
         uses: aws-actions/configure-aws-credentials@v1
@@ -80,8 +70,10 @@ jobs:
             sudo chmod +x ./pre-deploy.sh
             ./pre-deploy.sh
             sudo docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
-            sudo docker pull ${{ secrets.DOCKER_USERNAME }}/service-images:latest
-            sudo docker run -p 8080:8080 -d ${{ secrets.DOCKER_USERNAME }}/service-images:latest
+            sudo docker-compose up -d
+            sudo docker-compose ps
+#            sudo docker pull ${{ secrets.DOCKER_USERNAME }}/service-images:latest
+#            sudo docker run -p 8080:8080 -d ${{ secrets.DOCKER_USERNAME }}/service-images:latest
 
       - name: Remove github actions IP from security group
         env:
